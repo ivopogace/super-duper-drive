@@ -34,6 +34,16 @@ public class NoteService {
     }
 
     /**
+     * Check if we have previously added this note
+     * @param title title
+     * @param description description
+     * @return Existing Note
+     */
+    public Note getNoteByTitleAndDescription(String title, String description) {
+        return this.noteMapper.findNoteByTitleAndDescription(title, description);
+    }
+
+    /**
      * Save a new note by userId
      * @param note note
      * @param userId userId

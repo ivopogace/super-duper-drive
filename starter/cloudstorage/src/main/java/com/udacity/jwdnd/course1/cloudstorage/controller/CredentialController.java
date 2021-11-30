@@ -39,13 +39,19 @@ public class CredentialController {
                                                  Model model){
         Integer userId = userService.getUser(auth.getName()).getUserId();
         Credential existingCredential = credentialService.getByCredentialId(credential.getCredentialId());
-        if (existingCredential == null){
+        Credential duplicateCredential = credentialService.getByUrlAndUsername(credential.getUrl(), credential.getUsername());
+        if (duplicateCredential != null){
+            model.addAttribute("error", "This Credential already exists!");
+        }
+        else if (existingCredential == null){
             credentialService.createCredentialByUserId(credential, userId);
+            model.addAttribute("result", "success");
         }else {
             String updatedPassword = encryptionService.encryptValue(credential.getPassword(), key);
             credentialService.updateCredentialByUserId(existingCredential.getCredentialId(), credential.getUrl(), credential.getUsername(), updatedPassword, userId);
+            model.addAttribute("result", "success");
         }
-        model.addAttribute("result", "success");
+
         model.addAttribute("tab", "nav-credentials-tab");
         model.addAttribute("encryptionService", encryptionService);
         model.addAttribute("credentials", credentialService.getCredentialListByUserId(userId));

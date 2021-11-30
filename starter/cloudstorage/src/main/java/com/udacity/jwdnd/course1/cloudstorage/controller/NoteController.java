@@ -9,6 +9,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Objects;
+
 @Controller
 public class NoteController {
     private final UserService userService;
@@ -31,14 +33,21 @@ public class NoteController {
                                            @ModelAttribute("credentialForm") Credential credential,
                                            Model model) {
         Integer userId = userService.getUser(auth.getName()).getUserId();
-        Note existingNote = noteService.    getNoteById(newNote.getId());
-
-        if (existingNote == null) {
+        Note existingNote = noteService.getNoteById(newNote.getId());
+        Note duplicateNote = noteService.getNoteByTitleAndDescription(newNote.getTitle(), newNote.getDescription());
+        if (newNote.getDescription().length() > 1000){
+            model.addAttribute("error", "Description should be max 1000 char long!");}
+        else if (duplicateNote != null){
+            model.addAttribute("error", "This Note already exists!");
+        }
+        else if (existingNote == null) {
             noteService.createNoteByUserId(newNote, userId);
+            model.addAttribute("result", "success");
         } else {
             noteService.updateNoteByUserId(existingNote.getId(), newNote.getTitle(), newNote.getDescription(), userId);
+            model.addAttribute("result", "success");
         }
-        model.addAttribute("result", "success");
+
         model.addAttribute("tab", "nav-notes-tab");
         model.addAttribute("encryptionService", encryptionService);
         model.addAttribute("files", fileService.getFileListByUserId(userId));

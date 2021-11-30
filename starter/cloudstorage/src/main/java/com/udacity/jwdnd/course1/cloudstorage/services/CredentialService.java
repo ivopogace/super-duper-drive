@@ -32,11 +32,21 @@ public class CredentialService {
 
     /**
      * Find credential by credentialId
-     * @param credentialId
+     * @param credentialId credentialId
      * @return Credential
      */
     public Credential getByCredentialId(Integer credentialId) {
         return this.credentialMapper.findByCredentialId(credentialId);
+    }
+
+    /**
+     * Check for duplicates
+     * @param url url
+     * @param username username
+     * @return Existing Credential
+     */
+    public Credential getByUrlAndUsername(String url, String username) {
+        return this.credentialMapper.findByUrlAndUsername(url, username);
     }
 
     /**
@@ -70,5 +80,4 @@ public class CredentialService {
     public void deleteByCredentialIdAndUserId(Integer credentialId, Integer userId) {
         this.credentialMapper.delete(credentialId, userId);
     }
-
 }
