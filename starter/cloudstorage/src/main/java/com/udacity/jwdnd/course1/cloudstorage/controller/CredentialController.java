@@ -4,6 +4,7 @@ import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.Note;
 import com.udacity.jwdnd.course1.cloudstorage.services.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.propertyeditors.URLEditor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.beans.PropertyEditor;
+import java.util.Objects;
 
 @Controller
 public class CredentialController {
@@ -40,12 +44,23 @@ public class CredentialController {
         Integer userId = userService.getUser(auth.getName()).getUserId();
         Credential existingCredential = credentialService.getByCredentialId(credential.getCredentialId());
         Credential duplicateCredential = credentialService.getByUrlAndUsername(credential.getUrl(), credential.getUsername());
-        if (duplicateCredential != null){
-            model.addAttribute("error", "This Credential already exists!");
-        }
-        else if (existingCredential == null){
-            credentialService.createCredentialByUserId(credential, userId);
-            model.addAttribute("result", "success");
+
+         if (existingCredential == null){
+            try {
+
+                if (duplicateCredential != null){
+                    if (Objects.equals(duplicateCredential.getUsername(), credential.getUsername())){
+                        model.addAttribute("error", "This username already exists!");
+                    }
+                } else {
+                    PropertyEditor urlEditor = new URLEditor();
+                    urlEditor.setAsText(credential.getUrl());
+                    credentialService.createCredentialByUserId(credential, userId);
+                    model.addAttribute("result", "success");
+                }
+            } catch (IllegalArgumentException ex) {
+                model.addAttribute("error", "Invalid URL");
+            }
         }else {
             String updatedPassword = encryptionService.encryptValue(credential.getPassword(), key);
             credentialService.updateCredentialByUserId(existingCredential.getCredentialId(), credential.getUrl(), credential.getUsername(), updatedPassword, userId);
